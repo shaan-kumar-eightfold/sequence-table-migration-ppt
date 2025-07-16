@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Table Migration - Scaling for the Future</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .slide {
+            width: 90%;
+            height: 85%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: none;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .slide-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .slide-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .slide-subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            font-weight: 300;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .phases-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin: 30px 0;
+        }
+
+        .phase {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+            position: relative;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .phase:hover {
+            transform: scale(1.05);
+        }
+
+        .phase-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .phase-title {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .phase-desc {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: #667eea;
+            margin: 0 10px;
+        }
+
+        .challenge-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .challenge-item {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .challenge-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .challenge-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .challenge-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .challenge-desc {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .solution-item {
+            background: linear-gradient(145deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .solution-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .solution-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .solution-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .solution-desc {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #667eea;
+        }
+
+        .testing-visual {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .table-box {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .table-desc {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .highlight-text {
+            background: linear-gradient(120deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .icon-large {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        .database-icon { color: #3498db; }
+        .performance-icon { color: #e74c3c; }
+        .migration-icon { color: #2ecc71; }
+        .testing-icon { color: #f39c12; }
+        .success-icon { color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <div class="slide-number">1/8</div>
+            <div class="slide-header">
+                <div class="slide-title">🚀 Sequence Table Migration</div>
+                <div class="slide-subtitle">Scaling Database Infrastructure for <span class="highlight-text">80M+ Daily Operations</span></div>
+            </div>
+            <div class="slide-content">
+                <div class="icon-large database-icon">🗄️</div>
+                <div style="text-align: center; font-size: 1.3rem; color: #7f8c8d; margin-top: 20px;">
+                    Building resilient, scalable database architecture<br>
+                    for enterprise-grade performance
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Challenge -->
+        <div class="slide">
+            <div class="slide-number">2/8</div>
+            <div class="slide-header">
+                <div class="slide-title">⚠️ The Challenge</div>
+                <div class="slide-subtitle">Mission-Critical Database Migration at Scale</div>
+            </div>
+            <div class="slide-content">
+                <div class="challenge-list">
+                    <div class="challenge-item">
+                        <div class="challenge-icon">📊</div>
+                        <div class="challenge-title">High Traffic Volume</div>
+                        <div class="challenge-desc">70-80 Million saves per day requiring zero downtime migration</div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">⚡</div>
+                        <div class="challenge-title">Zero Downtime</div>
+                        <div class="challenge-desc">Business-critical systems cannot afford service interruption</div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🔗</div>
+                        <div class="challenge-title">Data Integrity</div>
+                        <div class="challenge-desc">Maintaining sequence consistency across distributed systems</div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🎯</div>
+                        <div class="challenge-title">Scalability</div>
+                        <div class="challenge-desc">Future-proofing infrastructure for exponential growth</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Current State -->
+        <div class="slide">
+            <div class="slide-number">3/8</div>
+            <div class="slide-header">
+                <div class="slide-title">📈 Current State & Impact</div>
+                <div class="slide-subtitle">Understanding the Scale</div>
+            </div>
+            <div class="slide-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">80M+</div>
+                        <div class="stat-label">Daily Database Saves</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Sequence Tables</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Downtime Target</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Data Consistency</div>
+                    </div>
+                </div>
+                <div style="text-align: center; font-size: 1.2rem; color: #7f8c8d; margin-top: 30px;">
+                    <span class="highlight-text">Mission:</span> Migrate sequence generation from legacy cluster to dedicated sequence-id-generator cluster
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Solution Strategy -->
+        <div class="slide">
+            <div class="slide-number">4/8</div>
+            <div class="slide-header">
+                <div class="slide-title">💡 Solution Strategy</div>
+                <div class="slide-subtitle">Phased Migration Approach</div>
+            </div>
+            <div class="slide-content">
+                <div class="phases-container">
+                    <div class="phase">
+                        <div class="phase-number">0</div>
+                        <div class="phase-title">Setup</div>
+                        <div class="phase-desc">Legacy system only</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="phase">
+                        <div class="phase-number">1</div>
+                        <div class="phase-title">Dual Write</div>
+                        <div class="phase-desc">Write to both systems</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="phase">
+                        <div class="phase-number">2</div>
+                        <div class="phase-title">Transition</div>
+                        <div class="phase-desc">Gradual switchover</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="phase">
+                        <div class="phase-number">3</div>
+                        <div class="phase-title">Complete</div>
+                        <div class="phase-desc">New system only</div>
+                    </div>
+                </div>
+                <div style="text-align: center; font-size: 1.1rem; color: #7f8c8d; margin-top: 30px;">
+                    Each phase ensures <span class="highlight-text">data consistency</span> and <span class="highlight-text">system reliability</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Key Benefits -->
+        <div class="slide">
+            <div class="slide-number">5/8</div>
+            <div class="slide-header">
+                <div class="slide-title">🎯 Key Benefits</div>
+                <div class="slide-subtitle">Why This Migration Matters</div>
+            </div>
+            <div class="slide-content">
+                <div class="solution-grid">
+                    <div class="solution-item">
+                        <div class="solution-icon">⚡</div>
+                        <div class="solution-title">Performance</div>
+                        <div class="solution-desc">Dedicated cluster optimized for sequence generation</div>
+                    </div>
+                    <div class="solution-item">
+                        <div class="solution-icon">🔧</div>
+                        <div class="solution-title">Maintainability</div>
+                        <div class="solution-desc">Isolated system easier to monitor and optimize</div>
+                    </div>
+                    <div class="solution-item">
+                        <div class="solution-icon">📈</div>
+                        <div class="solution-title">Scalability</div>
+                        <div class="solution-desc">Independent scaling based on sequence generation needs</div>
+                    </div>
+                    <div class="solution-item">
+                        <div class="solution-icon">🛡️</div>
+                        <div class="solution-title">Reliability</div>
+                        <div class="solution-desc">Reduced single point of failure with dedicated infrastructure</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Testing Strategy -->
+        <div class="slide">
+            <div class="slide-number">6/8</div>
+            <div class="slide-header">
+                <div class="slide-title">🧪 Testing Strategy</div>
+                <div class="slide-subtitle">Ensuring Reliability Through Comprehensive Testing</div>
+            </div>
+            <div class="slide-content">
+                <div class="testing-visual">
+                    <div class="table-box">
+                        <div class="table-title">🗂️ Old Sequence Table</div>
+                        <div class="table-desc">Legacy cluster (ID 0)<br>Current production system</div>
+                    </div>
+                    <div class="table-box">
+                        <div class="table-title">🆕 New Sequence Table</div>
+                        <div class="table-desc">Sequence-ID-Generator cluster<br>Target migration destination</div>
+                    </div>
+                    <div class="table-box">
+                        <div class="table-title">⚙️ Temp Sequence Table</div>
+                        <div class="table-desc">Transition helper table<br>Used in Phase 2 migration</div>
+                    </div>
+                </div>
+                <div style="text-align: center; font-size: 1.2rem; color: #7f8c8d; margin-top: 30px;">
+                    <span class="highlight-text">Testing Methodology:</span> Simulate real-world traffic patterns across all migration phases
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Risk Mitigation -->
+        <div class="slide">
+            <div class="slide-number">7/8</div>
+            <div class="slide-header">
+                <div class="slide-title">🛡️ Risk Mitigation</div>
+                <div class="slide-subtitle">Proactive Approach to System Safety</div>
+            </div>
+            <div class="slide-content">
+                <div class="solution-grid">
+                    <div class="solution-item">
+                        <div class="solution-icon">🔄</div>
+                        <div class="solution-title">Rollback Strategy</div>
+                        <div class="solution-desc">Immediate rollback capability at any migration phase</div>
+                    </div>
+                    <div class="solution-item">
+                        <div class="solution-icon">📊</div>
+                        <div class="solution-title">Real-time Monitoring</div>
+                        <div class="solution-desc">Continuous monitoring of sequence generation across all tables</div>
+                    </div>
+                    <div class="solution-item">
+                        <div class="solution-icon">🧪</div>
+                        <div class="solution-title">Corner Case Testing</div>
+                        <div class="solution-desc">Extensive testing of phase transitions and edge scenarios</div>
+                    </div>
+                    <div class="solution-item">
+                        <div class="solution-icon">⏱️</div>
+                        <div class="solution-title">Gradual Deployment</div>
+                        <div class="solution-desc">Phased approach allows for careful validation at each step</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Success Metrics -->
+        <div class="slide">
+            <div class="slide-number">8/8</div>
+            <div class="slide-header">
+                <div class="slide-title">🎉 Success Metrics</div>
+                <div class="slide-subtitle">Measuring Migration Success</div>
+            </div>
+            <div class="slide-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">0%</div>
+                        <div class="stat-label">Data Loss</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0s</div>
+                        <div class="stat-label">System Downtime</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Sequence Consistency</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Scalability Potential</div>
+                    </div>
+                </div>
+                <div style="text-align: center; font-size: 1.5rem; color: #27ae60; margin-top: 30px; font-weight: bold;">
+                    ✅ Ready for Production Deployment
+                </div>
+                <div style="text-align: center; font-size: 1.1rem; color: #7f8c8d; margin-top: 20px;">
+                    Comprehensive testing validates our approach for <span class="highlight-text">enterprise-scale migration</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(n) {
+            if (currentSlide + n >= 0 && currentSlide + n < totalSlides) {
+                showSlide(currentSlide + n);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft') changeSlide(-1);
+            if (event.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>
